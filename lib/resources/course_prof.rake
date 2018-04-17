@@ -1,0 +1,2 @@
+class CourseProf < Base
+end

@@ -1,0 +1,2 @@
+class Hitme < Base
+end
