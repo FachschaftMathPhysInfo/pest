@@ -1,0 +1,16 @@
+
+\begin{tikzpicture}
+\globalQuestion{
+  <%= question_text %>\\
+  {\globalNumberStyle
+    <%=t :answers%>: <%=sc%>%
+    <%= answ[:abstentions] == 0 ? "" : ", #{t :abstentions}: #{answ[:abstentions]}" %>}
+}
+<%# the \hfils{} centers the text without underfull warnings like %>
+<%# 'text centered' does. %>
+\draw node[right=2mm of question text.east, text width=9.83cm,
+  inner sep=0]
+  {\hfil{}<%=t :technical_too_few_answers %>\hfil{}};
+\end{tikzpicture}
+
+

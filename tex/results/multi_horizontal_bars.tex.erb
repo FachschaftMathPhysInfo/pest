@@ -1,0 +1,20 @@
+\begin{tikzpicture}
+\globalQuestion{
+  <%= question_text %>\\
+  {\globalNumberStyle
+    <%=t :answers%>: <%=sc%>%
+    <%= answ[:abstentions] == 0 ? "" : ", #{t :abstentions}: #{answ[:abstentions]}" %>}
+}
+<%
+  a = answ.delete_if { |k,v| !k.is_a?(String) }.keys
+  a.sort! { |x,y| answ[x] <=> answ[y] }
+  short_answ = a.map do |x|
+    if x.size > 40
+      "\\truncate{10cm}{\\small #{x}}"
+    else
+      "{\\small #{x}}"
+    end
+  end.join(",")
+%>
+\multiHorizontalBars{<%=short_answ%>}{<%=answ.values_at(*a).join(",")%>}{<%=sc%>}
+\end{tikzpicture}

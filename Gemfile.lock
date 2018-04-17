@@ -1,14 +1,3 @@
-GIT
-  remote: https://github.com/JsonApiClient/json_api_client.git
-  revision: 3f36f74d336f1e8292996ceca194cca2028f810a
-  specs:
-    json_api_client (1.5.3)
-      activemodel (>= 3.2.0)
-      activesupport (>= 3.2.0)
-      addressable (~> 2.2)
-      faraday (~> 0.9)
-      faraday_middleware (~> 0.9)
-
 GEM
   remote: http://rubygems.org/
   specs:
@@ -29,19 +18,29 @@ GEM
       faraday (>= 0.7.4, < 1.0)
     i18n (1.0.0)
       concurrent-ruby (~> 1.0)
+    json_api_client (1.5.3)
+      activemodel (>= 3.2.0)
+      activesupport (>= 3.2.0)
+      addressable (~> 2.2)
+      faraday (~> 0.9)
+      faraday_middleware (~> 0.9)
     minitest (5.11.3)
     multipart-post (2.0.0)
     public_suffix (3.0.2)
     thread_safe (0.3.6)
     tzinfo (1.2.5)
       thread_safe (~> 0.1)
+    work_queue (2.5.4)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  activemodel
+  activesupport
   byebug
-  json_api_client!
+  json_api_client
+  work_queue (>= 2.0)
 
 BUNDLED WITH
    1.15.4

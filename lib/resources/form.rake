@@ -1,3 +1,28 @@
 class Form < Base
     has_one :term
+
+  # the AbstractForm object belonging to this form
+  # this is NOT relational, we just dump the AbstractForm into the database as a YAML-string
+  # expiring will be handled in the forms_controller#expire_cache
+  def abstract_form
+    # cache yaml files for speeeed
+    $loaded_yaml_sheets ||= {}
+    begin
+      $loaded_yaml_sheets[id.to_i] ||= YAML::load(content)
+    rescue Exception => e
+      # Sheet does not appear to be a valid YAML. In this case the
+      # value will be nil (and thus not an AbstractForm). This will
+      # later be picked up as an invalid form.
+      $loaded_yaml_sheets[id.to_i] = e.message + "\n\n\n" + e.backtrace.join("\n")
+      logger.warn "Given AbstractForm is invalid:"
+      logger.warn $loaded_yaml_sheets[id.to_i]
+      #~ logger.warn "\n\n\nGiven content was:\n#{content}"
+    end
+    $loaded_yaml_sheets[id.to_i]
+  end
+  def db_table
+    name = ("evaldata_" + term.title + "_" + self.name).strip
+    name = ActiveSupport::Inflector.transliterate(name).downcase
+    name.gsub(/[^a-z0-9_]+/, "_")
+  end
 end

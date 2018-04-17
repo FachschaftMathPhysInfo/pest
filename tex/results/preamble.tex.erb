@@ -1,0 +1,108 @@
+% Supported/Expected variables:
+% evalname, String, required, should contain name for this evaluation
+%
+% Expects locale-related variables to be set, so that the translate
+% method »t« works.
+%
+% Expects that the Seee::Config class is loaded and accessible.
+
+% load (bugfixed) LaTeX and set some style options %%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{fix-cm}
+\documentclass[pagesize,halfparskip-,headsepline,cleardoubleempty,table]{scrbook}
+\usepackage{fixltx2e}
+\areaset[1cm]{17cm}{26cm}
+
+% load packages %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<%
+if I18n.tainted?
+  langs = I18n.available_locales.map do |l|
+    I18n.t :tex_babel_lang, :locale => l
+  end.join(",")
+else
+  langs = I18n.t :tex_babel_lang
+end
+%>
+\usepackage{amssymb}                  % some math symbols
+\usepackage{anysize}                  % control margins if we want to
+\usepackage[<%=langs%>]{babel}
+\usepackage{color}
+\usepackage{calc}
+\usepackage{dsfont}                   % additional math font
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}                  % tug.dk/FontCatalogue/lmodern
+\usepackage{longtable}                % so tutor tables may page break
+\usepackage{pdflscape}                % insert landscape pages
+\usepackage{marvosym}                 % more symbols
+% \usepackage{multicol}               % not in use
+%\usepackage[protrusion,expansion]{microtype} % nicer typesetting
+\usepackage[olditem,oldenum]{paralist}% use less space for lists
+\usepackage{pdfpages}                 % for including the sample sheets
+\usepackage{pgf}                      % answers; drawings with jpgjdraw
+\usepackage{pgffor}                   % for each loops
+\usepackage{pgfplots}                 % histograms, error bars, …
+\usetikzlibrary{patterns,positioning} % some fancy stuff
+\usepackage{textcomp}                 % symbols, e.g. \textrightarrow
+\usepackage[breakall]{truncate}       % trim overlong strings
+\usepackage{xparse}                   % nicer than newcommand
+\usepackage{xstring}                  % common string functions for TeX
+
+\usepackage[
+  pdftitle={<%= I18n.t(:teaching_eval_pdf_title).gsub('$faculty_term') { evalname }%>},
+  pdfauthor={<%= Seee::Config.settings[:author_pdf] %>},
+  pdfborder=0 0 1, bookmarks=true, pdftoolbar=true, pdfmenubar=true,
+  colorlinks=true, linkcolor=black, citecolor=black, filecolor=black,
+  urlcolor=black]{hyperref}
+
+<% additional_packages ||= "" %>
+<%=additional_packages%>
+
+% style settings %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\renewcommand{\TruncateMarker}{\textasciitilde}
+
+% set meta information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\author{<%=Seee::Config.settings[:author_page_headline] %>}
+\title{<%=I18n.t(:teaching_eval_headline).gsub("$faculty_term"){ evalname }%>}
+\date{\today}
+
+% common methods %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Finds the nth argument in a comma separated list. Zero based. Usage:
+% \findNthArgument{30,40,5,10,5}{1} % 40
+% The value is also available in \lastFindNthArgument after the command
+% has been executed.
+\newcommand\findNthArgument[2]{
+  \StrBetween[\numexpr#2+1,\numexpr#2+2]{,#1,}{,}{,}[\lastFindNthArgument]
+  \lastFindNthArgument
+}
+
+% Defines how the question will be typeset in TikZ. Usage within TikZ:
+% \globalQuestionStyle{some question}
+\newcommand{\globalQuestion}[1]{
+  \draw (0,0) node[text width=6.95cm, text justified, inner sep=0]
+                (question text){#1};
+}
+
+% Defines in plain (La)TeX how number values should be typeset (i.e. the
+% “answers: 123, abstention: 123” line)
+\newcommand{\globalNumberStyle}{\footnotesize}
+
+% shortcut used to highlight spelling errors when previewing online
+\newcommand{\spellingerror}[1]{\textcolor{red}{#1}}
+
+% random stuff %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand{\underline}{\PackageError{UseEmphInstead}{You're using a professional type-setting system, so act like it. Use emph instead of underline}}
+
+
+\renewcommand{\labelitemi}{-}
+
+
+% FIXME: these should be in a separate tex.erb
+\newcommand{\kurskopf}[5]{\clearpage\pdfdest name{#4} xyz%
+  \chapter{#1 #5 #2}}
+
+
+\begin{document}
