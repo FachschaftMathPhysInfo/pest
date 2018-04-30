@@ -10,12 +10,34 @@ GEM
       tzinfo (~> 1.1)
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
+    atk (3.2.4)
+      glib2 (= 3.2.4)
     byebug (10.0.2)
+    cairo (1.15.12)
+      native-package-installer (>= 1.0.3)
+      pkg-config (>= 1.2.2)
+    cairo-gobject (3.2.4)
+      cairo
+      glib2 (= 3.2.4)
     concurrent-ruby (1.0.5)
     faraday (0.14.0)
       multipart-post (>= 1.2, < 3)
     faraday_middleware (0.12.2)
       faraday (>= 0.7.4, < 1.0)
+    gdk_pixbuf2 (3.2.4)
+      gio2 (= 3.2.4)
+    gio2 (3.2.4)
+      glib2 (= 3.2.4)
+      gobject-introspection (= 3.2.4)
+    glib2 (3.2.4)
+      native-package-installer (>= 1.0.3)
+      pkg-config (>= 1.2.2)
+    gobject-introspection (3.2.4)
+      glib2 (= 3.2.4)
+    gtk2 (3.2.4)
+      atk (= 3.2.4)
+      gdk_pixbuf2 (= 3.2.4)
+      pango (= 3.2.4)
     i18n (1.0.0)
       concurrent-ruby (~> 1.0)
     json_api_client (1.5.3)
@@ -26,7 +48,15 @@ GEM
       faraday_middleware (~> 0.9)
     minitest (5.11.3)
     multipart-post (2.0.0)
+    native-package-installer (1.0.6)
+    pango (3.2.4)
+      cairo (>= 1.14.0)
+      cairo-gobject (= 3.2.4)
+      gobject-introspection (= 3.2.4)
+    pkg-config (1.3.0)
     public_suffix (3.0.2)
+    rake (12.3.1)
+    rmagick (2.16.0)
     thread_safe (0.3.6)
     tzinfo (1.2.5)
       thread_safe (~> 0.1)
@@ -39,7 +69,13 @@ DEPENDENCIES
   activemodel
   activesupport
   byebug
+  cairo
+  glib2 (~> 3.2.1)
+  gtk2
   json_api_client
+  pkg-config
+  rake
+  rmagick
   work_queue (>= 2.0)
 
 BUNDLED WITH

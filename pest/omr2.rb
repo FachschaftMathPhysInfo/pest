@@ -28,7 +28,7 @@ require 'pp'
 require 'fileutils'
 require 'tempfile'
 require "unicode_utils"
-
+require "byebug"
 require cdir + '/helper.misc.rb' # also loads rmagick
 
 require cdir + '/helper.boxtools.rb'
@@ -36,10 +36,13 @@ require cdir + '/helper.database.rb'
 require cdir + '/helper.drawing.rb'
 require cdir + '/helper.constants.rb'
 require cdir + '/helper.image.rb'
-
-require cdir + '/../web/app/lib/AbstractForm.rb'
+require "json_api_client"
+load cdir + '/../lib/resources/base.rake'
+load cdir + '/../lib/resources/resultpage.rake'
+load cdir + '/../lib/resources/result.rake'
+load cdir + '/../lib/AbstractForm.rake'
 require cdir + '/helper.AbstractFormExtended.rb'
-require cdir + '/../web/app/lib/RandomUtils.rb'
+require cdir + '/../lib/RandomUtils.rb'
 
 # Profiler. Uncomment code at the end of this file, too.
 #~ require 'ruby-prof'
@@ -413,7 +416,9 @@ class PESTOmr < PESTDatabaseTools
     # write out file
     img.write filename
     img.destroy!
-
+    # Load file and upload it
+    f =  File.read(filename)
+    
     if @debug
       draw_text(img_id, [x,y], "green", "Saved as: #{filename}")
       draw_transparent_box(img_id, [x,y], [x+w,y+h], "#DBFFD8", "", true)
@@ -577,7 +582,6 @@ class PESTOmr < PESTDatabaseTools
     # escaping
     q << (["?"]*(vals.size)).join(", ")
     q << ")"
-
     # only create YAMLs in debug and test mode
     if @debug || @test_mode
       fout = File.open(gen_new_filename(filename), "w")
@@ -588,16 +592,12 @@ class PESTOmr < PESTDatabaseTools
     # don't write to DB in test mode
     return if @test_mode
     begin
-      RT.custom_query_no_result("DELETE FROM #{yaml.db_table} WHERE path = ?", [filename])
-      RT.custom_query_no_result(q, vals)
-    rescue DBI::DatabaseError => e
-      debug "Failed to insert #{File.basename(filename)} into database."
-      debug q
-      debug "Error code: #{e.err}"
-      debug "Error message: #{e.errstr}"
-      debug "Error SQLSTATE: #{e.state}"
-      debug
-      debug "Aborting due to database error."
+      #RT.custom_query_no_result("DELETE FROM #{yaml.db_table} WHERE path = ?", [filename])
+      #RT.custom_query_no_result(q, vals)
+      p keys
+      Resultpage.create(keys:keys.to_json, vals:vals.to_json, db_table:yaml.db_table)
+      # upload images
+    rescue
       # still raise, so its printed into PEST_ERROR_LOG
       raise
     rescue
@@ -623,9 +623,9 @@ class PESTOmr < PESTDatabaseTools
     debug "Checking for existing files" if @verbose
 
     oldsize = files.size
-    RT.custom_query("SELECT path FROM #{db_table}").each do |row|
-      files.delete(row["path"])
-    end
+    #RT.custom_query("SELECT path FROM #{db_table}").each do |row|
+    #  files.delete(row["path"])
+    #end
     if oldsize != files.size
       debug "Skipping #{oldsize-files.size} already processed files."
     end
@@ -712,7 +712,7 @@ class PESTOmr < PESTDatabaseTools
       exit 2
     end
 
-    create_table_if_required(doc) unless @test_mode
+    Result.create(abstract_form:doc.to_json)
   end
 
   # returns the db_table that is used for the currently processed form
@@ -835,7 +835,7 @@ class PESTOmr < PESTDatabaseTools
     splitFiles.each_with_index do |f, corecount|
       next if f.empty?
 
-      cachedir = Seee::Config.file_paths[:cache_tmp_dir]
+      cachedir = Config.file_paths[:cache_tmp_dir]
       FileUtils.makedirs(cachedir)
       tmp = Tempfile.new("pest-omr-status-#{corecount}--", cachedir).path
       tmpfiles << tmp

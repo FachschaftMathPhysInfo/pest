@@ -14,8 +14,10 @@ class Form < Base
       # value will be nil (and thus not an AbstractForm). This will
       # later be picked up as an invalid form.
       $loaded_yaml_sheets[id.to_i] = e.message + "\n\n\n" + e.backtrace.join("\n")
-      logger.warn "Given AbstractForm is invalid:"
-      logger.warn $loaded_yaml_sheets[id.to_i]
+      warn "Given AbstractForm is invalid:"
+      warn $loaded_yaml_sheets[id.to_i]
+  
+      warn content
       #~ logger.warn "\n\n\nGiven content was:\n#{content}"
     end
     $loaded_yaml_sheets[id.to_i]

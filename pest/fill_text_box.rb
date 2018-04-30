@@ -3,30 +3,40 @@
 
 require 'pp'
 require 'base64'
+require "byebug"
 
 cdir = File.dirname(__FILE__)
-require cdir + '/../web/config/environment.rb'
+
 require cdir + '/helper.AbstractFormExtended.rb'
-
-SCap = Seee::Config.application_paths
-
+load cdir + '/../config/commands.rake'
+require "json_api_client"
+load cdir + '/../lib/resources/base.rake'
+load cdir + '/../lib/resources/resultpage.rake'
+load cdir + '/../lib/resources/result.rake'
+load cdir + '/../lib/resources/form.rake'
+load cdir + '/../lib/resources/term.rake'
+require cdir + '/../lib/RandomUtils.rb'
+load cdir + '/../lib/AbstractForm.rake'
+require cdir + '/../pest/helper.database.rb'
+RT = ResultTools.instance
+load cdir + '/../lib/result_tools.rb'
 answ = {}
 
 pdf_viewer_started = false
 tmp_path = "#{temp_dir}/fill_text_box.jpg"
 
-Term.currently_active.each do |term|
+Term.where(is_active:true).each do |term|
   term.forms.each do |source_form|
     puts "Proccessing #{source_form.name}"
 
     table = source_form.db_table
-    unless RT.table_exists?(table)
+    unless Result.find(table).first.exists
       warn "#{term.title} | #{source_form.name}’s table #{table} " \
               + "does not exist. Skipping."
       warn ""
       next
     end
-
+    source_form = source_form.abstract_form
     source_form.questions.each do |quest|
       next unless quest.last_is_textbox?
       puts "  Question: #{quest.text}"
@@ -36,18 +46,12 @@ Term.currently_active.each do |term|
       puts "  on page: #{page_index}"
 
       col = quest.db_column
+      answ[col]||={}
       txt_col = "#{col}_text"
+      tx = Result.find(table).first
+      rows = tx.fp(col: col, txt_col: txt_col, boxes_count: quest.boxes.count).first.res
 
-      sql = "SELECT abstract_form, path FROM #{table} "
-      sql << %(WHERE #{col} = ? AND #{txt_col} IS NULL)
-      rows = RT.custom_query(sql, [quest.boxes.count])
-
-      # pre-fill columns
-      answ[col] ||= {}
-      sql = "SELECT COUNT(*) AS cnt, #{txt_col} AS val FROM #{table} "
-      sql << %(WHERE #{col} = ? AND #{txt_col} <> '' AND #{txt_col} IS NOT NULL )
-      sql << "GROUP BY #{txt_col}"
-      RT.custom_query(sql, [quest.boxes.count]).each do |p|
+       tx.count_txt(col: col, txt_col: txt_col, boxes_count: quest.boxes.count).first.res.each do |p|
         answ[col][p["val"]] ||= 0
         answ[col][p["val"]] += p["cnt"].to_i
       end
@@ -73,6 +77,7 @@ Term.currently_active.each do |term|
         # clear screen first
         print "\e[2J\e[f"
         puts "Path: #{r["path"]}"
+        puts col
         puts
         # print the most common values, but sort them alphabetically
         # to prevent them from jumping if they appear in a,b,a… form
@@ -83,13 +88,13 @@ Term.currently_active.each do |term|
         puts
         puts "What is written into the textbox in the center of the image?"
         print "> "
-        value = gets.strip
+        value = $stdin.gets.strip
         # increase count
+        p value
         answ[col][value] ||= 0
         answ[col][value] += 1
         # store value to database
-        sql = "UPDATE #{table} SET #{txt_col} = ? WHERE path = ?"
-        RT.custom_query_no_result(sql, [value, r["path"]])
+        tx.update_txt(value:value,path:r["path"], txt_col:txt_col)
       end
     end
   end

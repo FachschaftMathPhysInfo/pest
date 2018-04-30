@@ -1,10 +1,11 @@
 require 'json_api_client'
 require 'yaml'
 require "byebug"
+require 'active_support'
+Rake.add_rakelib 'config'
 Rake.add_rakelib 'lib'
 Rake.add_rakelib 'lib/resources'
 Rake.add_rakelib 'rakefiles'
-Rake.add_rakelib 'config'
 require 'rake/clean'
 CLEAN.include('tmp/**/*.log', 'tmp/**/*.out', 'tmp/**/*.aux',
   'tmp/**/*.toc', 'tmp/blame.tex', 'tmp/forms/**/*.tex')

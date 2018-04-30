@@ -5,7 +5,7 @@
 
 cdir = File.dirname(__FILE__)
 require cdir + '/helper.misc.rb'
-require cdir + '/../web/app/lib/result_tools.rb'
+require cdir + '/../lib/result_tools.rb'
 
 class PESTDatabaseTools
   RT = ResultTools.instance
@@ -31,52 +31,5 @@ class PESTDatabaseTools
     end
     RT.custom_query(x).each { |y| tables << y.values[0] }
     tables
-  end
-
-  # creates the database table as defined by the given YAML document.
-  def create_table_if_required(f)
-    return if RT.table_exists?(f.db_table)
-    # Note that the barcode is only unique for each CourseProf, but
-    # not for each sheet. That's why path is used as unique key.
-    q = "CREATE TABLE #{f.db_table} ("
-
-    f.questions.each do |quest|
-      next if quest.db_column.nil?
-      if quest.db_column.is_a?(Array)
-        quest.db_column.each do |a|
-          q << "#{a} INTEGER, "
-        end
-      else
-        q << "#{quest.db_column} INTEGER, "
-        txt_col = quest.multi? ? quest.db_column.last : quest.db_column
-        q << "#{txt_col}_text VARCHAR(250), " if quest.last_is_textbox?
-      end
-    end
-
-    q << "path VARCHAR(255) NOT NULL UNIQUE, "
-    q << "barcode INTEGER default NULL, "
-    q << "abstract_form TEXT default NULL "
-    q << ");"
-
-    begin
-      RT.custom_query_no_result(q)
-      debug "Created #{f.db_table}"
-    rescue => e
-      # There is no proper method supported by MySQL, PostgreSQL and
-      # SQLite to find out if a table already exists. So, if above
-      # command failed because the table exists, selecting something
-      # from it should work fine. If it doesn’t, print an error message.
-      begin
-        RT.custom_query_no_result("SELECT * FROM #{f.db_table}")
-      rescue
-        debug "Note: Creating table #{f.db_table} failed. Possible causes:"
-        debug "* SQL backend is down/misconfigured"
-        debug "* used SQL query is not supported by your SQL backend"
-        debug "Query was #{q}"
-        debug "Error: "
-        pp e
-        exit
-      end
-    end
   end
 end

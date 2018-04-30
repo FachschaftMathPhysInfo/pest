@@ -28,7 +28,11 @@ SUPPORTED_TYPES = ["square"]
 
 # includes #############################################################
 cdir = File.dirname(__FILE__)
-require cdir + '/../web/config/ext_requirements.rb'
+require "bundler"
+require "rmagick"
+require "byebug"
+require "active_support"
+require 'tempfile'
 Bundler.require(:pest)
 
 require File.join(cdir, 'helper.boxtools.rb')
@@ -36,6 +40,10 @@ require File.join(cdir, 'helper.database.rb')
 require File.join(cdir, 'helper.constants.rb')
 require File.join(cdir, 'helper.misc.rb')
 
+load File.join(cdir,"../lib/resources/base.rake")
+load File.join(cdir,"../lib/AbstractForm.rake")
+load File.join(cdir,"../lib/resources/resultpage.rake")
+load File.join(cdir,"../lib/resources/result.rake")
 
 require File.join(cdir, 'helper.AbstractFormExtended.rb')
 
@@ -113,7 +121,8 @@ class PESTFix < PESTDatabaseTools
     return @current_db_value if @current_db_value
     debug "Loading current value from DB"
     table = @current_question["table"]
-    x = RT.custom_query("SELECT #{current_db_column} FROM #{table} WHERE path = ?", [current_path], true)
+    res = Result.find(table).first
+    x = res.current_value(path:current_path,db_column:current_db_column).first.res
     @current_db_value = x[current_db_column].to_i
   end
 
@@ -127,8 +136,7 @@ class PESTFix < PESTDatabaseTools
       debug nil, "db_save"
       table = @current_question["table"]
       field = @current_question["question"].db_column
-      RT.custom_query_no_result("UPDATE #{table} SET #{field} = ? WHERE path = ?",
-                                                  [value, current_path])
+      Result.find(table).first.update_value(field:field, value:value, path:current_path)
       debug "Set DB value to #{value}", "db_save"
 
       box_stat = nil
@@ -169,8 +177,10 @@ class PESTFix < PESTDatabaseTools
 
   # loads the value stored in the DB for the given question
   def db_value_for_question(q)
-    col = q["question"].db_column
-    RT.custom_query("SELECT #{col} FROM #{q["table"]} WHERE path = ?", [q["path"]], true)[col]
+    table= Result.find(q["table"]).first
+    res= table.value(path:q["path"], column:q["question"].db_column)
+    res = res.first.res
+    res
   end
 
   # Undo will first view the question without making any changes if it
@@ -208,9 +218,15 @@ class PESTFix < PESTDatabaseTools
     return if @find_all_failed_questions
     @find_all_failed_questions = true
     new_questions = 0
+    p @tables
     @tables.each do |t,f|
-      q = "SELECT path, abstract_form, #{f.join(", ")} FROM #{t} WHERE #{f.join("=-1 OR ")}=-1"
-      res = RT.custom_query(q)
+      p t
+      p f
+      table= Result.find(t).first
+      res= table.failed_questions(questions:f)
+      res = res.first.res
+      #q = "SELECT path, abstract_form, #{f.join(", ")} FROM #{t} WHERE #{f.join("=-1 OR ")}=-1"
+      #res = RT.custom_query(q)
       res.each do |q|
         # skip all files that have already been processed
         next if @all_processed_paths.include?(q["path"])
@@ -289,11 +305,11 @@ class PESTFix < PESTDatabaseTools
       debug "Checking #{t}"
       # only add tables if they exist AND have an abstract_form column
       begin
-        form = RT.custom_query("SELECT abstract_form FROM #{t}", [], true)
-        form = Marshal.load(Base64.decode64(form["abstract_form"]))
+        form = Resultpage.find(t).first.form
         valid_fields = form.questions.collect do |q|
           SUPPORTED_TYPES.include?(q.type) ? q.db_column : nil
         end
+        p form
         valid_fields.compact!
         # HACK HACK HACK! Remove after current eval. FIXME FIXME FIXME
         if valid_fields.include?("tutnum")

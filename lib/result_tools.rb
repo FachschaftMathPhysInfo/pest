@@ -73,19 +73,10 @@ class ResultTools
 
   # returns true if the given table exists, false otherwise
   def table_exists?(table)
-    raise unless report_valid_name?(table)
-    qry = case SCed[:dbi_handler].downcase
-      when "sqlite3" then "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
-      # SQL standard as implemented by… nobody
-      else "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ?"
-    end
-    sth = dbh.prepare(qry)
-    sth.execute(table)
-    r = sth.fetch
-    sth.finish
-    !r.nil?
+    # a little bit hacky, but it hopefully works
+    # todo move to server
+    true
   end
-
   # Counts the amount of rows for the given hash as well as the average
   # and standard deviation for the given values. Rows with invalid
   # values (i.e. only 0 < values < 99) are ignored.

@@ -29,5 +29,4 @@ class Course < Base
       (a =~ /@/ ) ? a : a + '@' + SCs[:standard_mail_domain]
     end
   end
-
 end

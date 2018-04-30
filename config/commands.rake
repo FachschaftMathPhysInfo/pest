@@ -1,4 +1,5 @@
 require 'pathname'
+require 'active_support'
 
 if not defined?(RAILS_ROOT)
   RAILS_ROOT = File.join(File.dirname(__FILE__), "..")
@@ -62,7 +63,7 @@ module Config
       # point this to the script you use to import pages as 2-sided tif
       # images. Either name them ".tif" (NOT tif_f_) if you want them to
       # be recognized or send patches :)
-      :scan => File.join(RAILS_ROOT, '..', 'tools', "scan.sh"),
+      :scan => File.join(RAILS_ROOT, 'tools', "scan.sh"),
       # point this to the script that can be used to print forms. It
       # should accept file paths to PDF files to print and be non-
       # interactive if --non-interactive is given on the command line.
@@ -73,7 +74,7 @@ module Config
       # choose one which can detect if it is already showing the same
       # image instead of opening it again as well as detect changes to
       # the source file.
-      :pdf_viewer => "evince",
+      :pdf_viewer => "okular",
       # this is the old zbar, which uses the default ImageMagick
       :zbar_shared => File.join(RAILS_ROOT, 'tools', "zbarimg_#{`uname -m`.strip}"),
       # this is the custom zbar, which uses the custom ImageMagick
@@ -145,9 +146,9 @@ module Config
 
       :hunspell_personal_dic => File.join(RAILS_ROOT, "app", "lib", "persdic.dic"),
 
-      :scanned_pages_dir => File.join(RAILS_ROOT, "..", "tmp", "scanned"),
+      :scanned_pages_dir => File.join(RAILS_ROOT, "tmp", "scanned"),
 
-      :sorted_pages_dir => File.join(RAILS_ROOT, "..", "tmp", "images"),
+      :sorted_pages_dir => File.join(RAILS_ROOT, "tmp", "images"),
 
       # prefer the custom RMagick version over the default one. Its meant
       # to be used for "require" and should automatically fall back to
@@ -200,6 +201,10 @@ module Config
     end
   end
 Scc= Config.commands
+SCc= Config.commands
 SCs= Config.settings
+
+SCap = Config.application_paths
+SCfp = Config.file_paths unless defined?(SCfp)
 puts  Scc[:xelatex]
 GNT_ROOT = RAILS_ROOT
