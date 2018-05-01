@@ -16,7 +16,7 @@ class Form < Base
       $loaded_yaml_sheets[id.to_i] = e.message + "\n\n\n" + e.backtrace.join("\n")
       warn "Given AbstractForm is invalid:"
       warn $loaded_yaml_sheets[id.to_i]
-  
+
       warn content
       #~ logger.warn "\n\n\nGiven content was:\n#{content}"
     end
@@ -26,5 +26,15 @@ class Form < Base
     name = ("evaldata_" + term.title + "_" + self.name).strip
     name = ActiveSupport::Inflector.transliterate(name).downcase
     name.gsub(/[^a-z0-9_]+/, "_")
+  end
+  # returns a translated string about too few sheets being available to
+  # evaluate (anonymity protection). Supports special strings for 0, 1
+  # and more than 1 situations.
+  def too_few_sheets(count)
+    case count
+      when 0 then I18n.t(:too_few_questionnaires)[:null]
+      when 1 then I18n.t(:too_few_questionnaires)[:singular]
+      else        I18n.t(:too_few_questionnaires)[:plural].gsub(/#1/, count.to_s)
+    end
   end
 end

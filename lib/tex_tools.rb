@@ -185,7 +185,7 @@ def test_tex_code(content)
   foot = "\n\\end{document}"
 
   stat = -1
-  d = Dir.mktmpdir("blame", Seee::Config.file_paths[:cache_tmp_dir])
+  d = Dir.mktmpdir("blame", Config.file_paths[:cache_tmp_dir])
   begin
     File.open(File.join(d, "blame.tex"), 'w') do |f|
       f.write(head)

@@ -3,6 +3,7 @@ require 'yaml'
 require "byebug"
 require 'active_support'
 Rake.add_rakelib 'config'
+I18n.load_path += Dir.glob(File.join(File.dirname(__FILE__), 'config/locales/*.yml'))
 Rake.add_rakelib 'lib'
 Rake.add_rakelib 'lib/resources'
 Rake.add_rakelib 'rakefiles'

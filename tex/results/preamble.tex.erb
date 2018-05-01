@@ -8,8 +8,7 @@
 
 % load (bugfixed) LaTeX and set some style options %%%%%%%%%%%%%%%%%%%%%
 \RequirePackage{fix-cm}
-\documentclass[pagesize,halfparskip-,headsepline,cleardoubleempty,table]{scrbook}
-\usepackage{fixltx2e}
+\documentclass[pagesize,parskip=half-,headsepline,cleardoublepage=empty,table]{scrbook}
 \areaset[1cm]{17cm}{26cm}
 
 % load packages %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -30,7 +29,6 @@ end
 \usepackage{dsfont}                   % additional math font
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
-\usepackage[utf8]{inputenc}
 \usepackage{lmodern}                  % tug.dk/FontCatalogue/lmodern
 \usepackage{longtable}                % so tutor tables may page break
 \usepackage{pdflscape}                % insert landscape pages
@@ -42,6 +40,7 @@ end
 \usepackage{pgf}                      % answers; drawings with jpgjdraw
 \usepackage{pgffor}                   % for each loops
 \usepackage{pgfplots}                 % histograms, error bars, …
+\pgfplotsset{compat=1.15}
 \usetikzlibrary{patterns,positioning} % some fancy stuff
 \usepackage{textcomp}                 % symbols, e.g. \textrightarrow
 \usepackage[breakall]{truncate}       % trim overlong strings
@@ -50,7 +49,7 @@ end
 
 \usepackage[
   pdftitle={<%= I18n.t(:teaching_eval_pdf_title).gsub('$faculty_term') { evalname }%>},
-  pdfauthor={<%= Seee::Config.settings[:author_pdf] %>},
+  pdfauthor={<%= Config.settings[:author_pdf] %>},
   pdfborder=0 0 1, bookmarks=true, pdftoolbar=true, pdfmenubar=true,
   colorlinks=true, linkcolor=black, citecolor=black, filecolor=black,
   urlcolor=black]{hyperref}
@@ -63,7 +62,7 @@ end
 
 % set meta information %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\author{<%=Seee::Config.settings[:author_page_headline] %>}
+\author{<%=Config.settings[:author_page_headline] %>}
 \title{<%=I18n.t(:teaching_eval_headline).gsub("$faculty_term"){ evalname }%>}
 \date{\today}
 

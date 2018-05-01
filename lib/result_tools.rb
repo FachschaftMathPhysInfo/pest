@@ -24,6 +24,7 @@ class ResultTools
   # questions may refer to them (e.g. \lect{} to get the lecturer’s
   # name) they should be included in the results as well.
   # Currently supported: course_prof, tutor
+=end
   def include_form_variables(klass)
     not_avail = []
     defined = {}
@@ -59,7 +60,7 @@ class ResultTools
   # returns a TeX-string which include all generated sample sheets. Also
   # adds the footer which ends the TeX document.
   def sample_sheets_and_footer(forms)
-    path = File.join(Rails.root, "../tmp/sample_sheets/sample_")
+    path = File.join(RAILS_ROOT, "tmp/sample_sheets/sample_")
     sample_sheets = {}
 
     forms.each do |f|
@@ -70,28 +71,19 @@ class ResultTools
 
     ERB.new(load_tex("footer")).result(binding)
   end
-
+=begin
   # returns true if the given table exists, false otherwise
   def table_exists?(table)
     # a little bit hacky, but it hopefully works
     # todo move to server
     true
   end
+=end
   # Counts the amount of rows for the given hash as well as the average
   # and standard deviation for the given values. Rows with invalid
   # values (i.e. only 0 < values < 99) are ignored.
   def count_avg_stddev(table, column, where_hash = {})
-    return -1 unless report_valid_name?(table) && report_valid_name?(column)
-    clause = hash_to_where_clause(where_hash)
-    return -1 if clause.nil?
-    sql = "SELECT COUNT(#{column}) AS count, "
-    sql << "        AVG(#{column}) AS avg, "
-    sql << "     STDDEV(#{column}) AS stddev "
-    sql << "FROM #{table} WHERE #{clause}"
-    # exclude invalid values
-    sql << "AND 0 < #{column} AND #{column} < 99"
-    r = custom_query(sql, where_hash.values, true)
-    return r["count"].to_i, r["avg"].to_f, r["stddev"].to_f
+    Result.find(table).first.count_avg_stddev(where_hash:where_hash,column:column).first.res
   end
 
   # Counts the amount of rows for the given hash. It is processed in the
@@ -103,41 +95,13 @@ class ResultTools
   # column and return multiple results. The format is a hash of
   # { value => count }
   def count(table, where_hash = {}, group = nil, skip_null = true)
-    return -1 unless report_valid_name?(table)
-    return table.uniq.collect {|t| count(t, where_hash, group) }.sum \
-      if table.is_a?(Array)
-    # Don’t report missing tables in test mode and don’t query them
-    # even if they exist
-    return 0 if ENV["RAILS_ENV"] == "test"
-    unless table_exists?(table)
-      warn "Given table `#{table}` does NOT exist."
-      warn "Assuming this means there are no sheets for that table."
-      warn "Returning 0 now."
-      return 0
-    end
-    if group && group.is_a?(String)
-      sql = "SELECT #{group} AS value, COUNT(*) AS count FROM #{table} WHERE"
-    else
-      sql = "SELECT COUNT(*) AS count FROM #{table} WHERE"
-    end
-    clause = hash_to_where_clause(where_hash)
-    return -1 if clause.nil?
-    sql << clause
-    if group && group.is_a?(String)
-      sql << " GROUP BY #{group} "
-      r = {}
-      custom_query(sql, where_hash.values, false).each do |row|
-        next if skip_null && row["value"].nil?
-        v = row["value"] =~ /^[0-9]+$/ ? row["value"].to_i : row["value"]
-        r[v] = row["count"].to_i
-      end
-      return r
-    else
-      r = custom_query(sql, where_hash.values, true)
-      return r["count"].to_i
-    end
+    r ={}
+    answ = Result.find(table).first.count(where_hash:where_hash,group:group,skip_null:skip_null).first.res
+    return answ unless answ.is_a?(Hash)
+    answ.each {|key,value| r[key.to_i] = value}
+    r
   end
-
+=begin
   # May be used to group a given question by what was answered in
   # correlate_by. For example, if you want to see how the study group
   # attendance differs per major, you would it like this:
@@ -295,7 +259,7 @@ class ResultTools
     reconnect_to_database if @dbh.nil? || !@dbh.connected?
     @dbh
   end
-
+=end
   # evaluates a given question with the sheets matching special_where.
   # If the question type prints a comparison value it will be compared
   # against all sheets that can be found in compare_where. Note that
@@ -317,7 +281,7 @@ class ResultTools
     end
     (b + "\n\n")
   end
-
+=begin
   # Loads a tex.erb file from disk and then stores it in memory. If
   # there is no file of that name a warning is printed to STDERR and an
   # error message is returned in place of the ERB code. Sample usage:
@@ -331,7 +295,6 @@ class ResultTools
     if @tex[name].nil?
       path = RAILS_ROOT + "/tex/results/#{name}.tex.erb"
       p path
-      byebug
       if File.exist?(path)
         @tex[name] = IO.read(path)
       else
@@ -345,13 +308,13 @@ class ResultTools
 
     @tex[name]
   end
-=begin
+
   # Loads all .def.tex files located in the tex/results folder. These
   # files contain commands that do not change and therefore only need to
   # be included once. ERB is not supported.
   def load_tex_definitions
     b = ""
-    Dir.glob(RAILS_ROOT + "/../tex/results/*.def.tex") do |file|
+    Dir.glob(RAILS_ROOT + "/tex/results/*.def.tex") do |file|
       b << IO.read(file) << "\n\n"
     end
     b
@@ -379,7 +342,6 @@ class ResultTools
 
     b
   end
-
   # See eval_question; handles single choice questions only
   def eval_question_single(table, q, special_where, compare_where, repeat_for_class)
     question_text = get_question_text(q, repeat_for_class)
@@ -577,12 +539,11 @@ class ResultTools
     return false if name.nil? || name.empty? || !name.is_a?(String)
     name[/[0-9A-Z_-]+/i] == name
   end
-
   # convenience translation method
   def t(name)
     I18n.translate(name.to_sym)
   end
-
+=begin
   def warn(text)
     if defined?(Rails) && Rails.logger
       Rails.logger.warn text
