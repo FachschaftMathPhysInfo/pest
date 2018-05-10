@@ -10,7 +10,8 @@ namespace :results do
     puts "Could not find specified faculty (id = #{faculty_id})" if f.nil?
     puts "Could not find specified term (id = #{term_id})" if t.nil?
     return if f.nil? || t.nil?
-
+    f = f.first
+    t= t.first
     filename = f.longname.gsub(/\s+/,'_').gsub(/^\s|\s$/, "")
     filename << '_' << t.dir_friendly_title
     filename << '_' << (I18n.tainted? ? "mixed" : I18n.default_locale).to_s
@@ -27,7 +28,7 @@ namespace :results do
 
   desc "fix common TeX errors and warn about possible ones"
   task :fix_tex_errors do
-    courses = Term.currently_active.map { |s| s.courses }.flatten
+    courses = Term.where(is_active:true).map { |s| s.courses }.flatten
     courses.each do |c|
       unless c.summary.nil?
         c.summary = c.summary.fix_common_tex_errors
@@ -58,7 +59,7 @@ namespace :results do
 
   desc "find comment fields with broken LaTeX code"
   task :find_broken_comments do
-    courses = Term.currently_active.map { |s| s.courses }.flatten
+    courses = Term.where(is_active:true).map { |s| s.courses }.flatten
     @max = 0
     @cur = 0
 
@@ -108,10 +109,12 @@ namespace :results do
 
   desc "create pdf reports for all courses of a faculty for a given term one at a time (i.e. a whole bunch of files). leave term_id and faculty_id empty for current term and all faculties."
   task :pdf_singles, [:term_id, :faculty_id] => "forms:samples" do |t,a|
-    term_ids = a.term_id ? [a.term_id] : Term.currently_active.map(&:id)
-    faculty_ids = a.faculty_id ? [a.faculty_id] : Faculty.find(:all).map(&:id)
+    term_ids = a.term_id ? [a.term_id.to_i] : Term.where(is_active:true).map{|t| t.id.to_i}
+
+    faculty_ids = a.faculty_id ? [a.faculty_id.to_i] : Faculty.all.map{|t| t.id.to_i}
 
     courses = Course.where(:term_id => term_ids, :faculty_id => faculty_ids)
+    byebug
     max = courses.map { |c| c.course_profs.size + c.tutors.size }.sum
     cur = 0
     print_progress(cur, max)
@@ -128,7 +131,7 @@ namespace :results do
     dirname = './tmp/results/'
     FileUtils.mkdir_p(dirname)
 
-    term_ids = a.term_id ? [a.term_id] : Term.currently_active.map(&:id)
+    term_ids = a.term_id ? [a.term_id] : Term.where(is_active:true).map(&:id)
 
     term_ids.each do |sem_id|
       # we have been given a specific faculty, so evaluate it and exit.
@@ -147,6 +150,7 @@ namespace :results do
 	evaluate(sem_id, a.faculty_id, dirname)
       else
 	# no faculty specified, just find all and process them in parallel.
+  byebug
 	Faculty.all.each do |f|
 	  args = [lang_code, sem_id, f.id].join(",")
 	  puts "Running «rake \"results:pdf_report[#{args}]\"»"

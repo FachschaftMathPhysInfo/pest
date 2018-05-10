@@ -27,7 +27,7 @@ require 'yaml'
 require 'pp'
 require 'fileutils'
 require 'tempfile'
-require "unicode_utils"
+#require "unicode_utils"
 require "byebug"
 require cdir + '/helper.misc.rb' # also loads rmagick
 
@@ -418,7 +418,7 @@ class PESTOmr < PESTDatabaseTools
     img.destroy!
     # Load file and upload it
     f =  File.read(filename)
-    
+
     if @debug
       draw_text(img_id, [x,y], "green", "Saved as: #{filename}")
       draw_transparent_box(img_id, [x,y], [x+w,y+h], "#DBFFD8", "", true)

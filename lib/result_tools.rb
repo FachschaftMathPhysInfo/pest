@@ -96,6 +96,7 @@ class ResultTools
   # { value => count }
   def count(table, where_hash = {}, group = nil, skip_null = true)
     r ={}
+    table = table.first if table.is_a?(Array)
     answ = Result.find(table).first.count(where_hash:where_hash,group:group,skip_null:skip_null).first.res
     return answ unless answ.is_a?(Hash)
     answ.each {|key,value| r[key.to_i] = value}

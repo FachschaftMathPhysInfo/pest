@@ -9,7 +9,7 @@ namespace :forms do
     forms = if a.term_id.nil?
       Term.where(is_active:true).map { |s| s.forms }.flatten
     else
-      Term.find(a.term_id).forms
+      Term.find(a.term_id).first.forms
     end
 
     forms.each do |f|
