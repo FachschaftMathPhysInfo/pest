@@ -31,7 +31,6 @@ namespace :forms do
       Term.find(a.term_id).course_profs
     end
     prog = 0
-    byebug
     puts
     puts "Creating forms:"
     missing_students = []

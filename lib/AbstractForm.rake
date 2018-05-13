@@ -563,7 +563,6 @@ class AbstractForm
     tex<<"\\questionaire{#{barcode}}{\\arabic{sheet}}\n"
     tex << "}\n"
     tex << "\\end{document}"
-    File.open("/home/henrik/output.tex","w"){|file| file.write(tex)}
     tex
   end
 
