@@ -7,6 +7,7 @@ gem "activemodel"
 gem "work_queue",      ">=2.0"
 gem "byebug"
 gem "rmagick"
+gem 'thread'
 
 # gems required for OMR
 group :pest do

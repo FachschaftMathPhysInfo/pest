@@ -1,3 +1,4 @@
+require 'thread/pool'
 namespace :forms do
   desc "Generate forms"
   task :generate, :term_id do |a,t|
@@ -24,7 +25,8 @@ namespace :forms do
   task :generate, [:term_id] do |t, a|
     dirname = './tmp/forms/'
     FileUtils.mkdir_p(dirname)
-
+    # creating a pool
+    pool = Thread.pool(4)
     cps = if a.term_id.nil?
       Term.where(is_active:true).map { |s| s.course_profs }.flatten
     else
@@ -37,6 +39,7 @@ namespace :forms do
     cps.each do |cp|
       p cp
       #work_queue.enqueue_b do
+      pool.process {
         if cp.course.students.blank?
           missing_students << cp.course.title
         else
@@ -44,9 +47,10 @@ namespace :forms do
         end
         prog += 1
         print_progress(prog, cps.size, cp.course.title)
+      }
      # end
     end
-
+    pool.shutdown
     unless missing_students.empty?
       warn "There are courses that don’t have their student count specified."
       warn missing_students.compact.join("\n")
