@@ -89,7 +89,7 @@ namespace :results do
   end
 
   def pdf_single(course)
-    dirname = './tmp/results/singles/'
+    dirname = 'tmp/results/singles/'
     FileUtils.mkdir_p(dirname)
     c = course
     filename = c.dir_friendly_title << '_' << c.term.dir_friendly_title << '.pdf'

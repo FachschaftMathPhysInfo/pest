@@ -99,7 +99,11 @@ class ResultTools
     table = table.first if table.is_a?(Array)
     answ = Result.find(table).first.count(where_hash:where_hash,group:group,skip_null:skip_null).first.res
     return answ unless answ.is_a?(Hash)
-    answ.each {|key,value| r[key.to_i] = value}
+    answ.each {|key,value|
+      if key.match(/^\d+$/)
+       r[key.to_i] = value
+     else r[key]=value
+     end}
     r
   end
 =begin
@@ -463,7 +467,6 @@ class ResultTools
       # make additional answers available via index as well
       ind = q.boxes.count
       all = 0
-
       cc.each do |v,c|
         # guard against commas
         v = "{#{v}}"
