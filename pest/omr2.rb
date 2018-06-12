@@ -40,6 +40,10 @@ require "json_api_client"
 load cdir + '/../lib/resources/base.rake'
 load cdir + '/../lib/resources/resultpage.rake'
 load cdir + '/../lib/resources/result.rake'
+load cdir + '/../lib/resources/course_prof.rake'
+load cdir + '/../lib/resources/course.rake'
+load cdir + '/../lib/resources/term.rake'
+load cdir + '/../lib/resources/form.rake'
 load cdir + '/../lib/AbstractForm.rake'
 require cdir + '/helper.AbstractFormExtended.rb'
 require cdir + '/../lib/RandomUtils.rb'
@@ -470,7 +474,11 @@ class PESTOmr < PESTDatabaseTools
       debug "WARNING: File not found: " + file
       return
     end
-
+    bname = File.basename file
+    if Result.find(CourseProf.find(bname.split("_")[0]).first.course.form.db_table).first.count(where_hash:{:path=>file}).first.res>0
+      debug "INFO: File already in system: " + file
+      return
+    end
     @currentFile = file
 
     start_time = Time.now

@@ -11,7 +11,50 @@ namespace :images do
     puts
     puts "Next recommended step: rake images:sortandalign"
   end
-
+  desc "Import from "
+  task :import_from_dir, :directory do | t, d|
+        # use default directory if none given
+        if d.directory.nil? || d.directory.empty?
+          d = {}
+          d[:directory] = SCfp[:scanned_pages_dir]
+          FileUtils.makedirs(d[:directory])
+        end
+    
+        # abort if the directory of choice does not exist for some reason
+        abort("Given directory does not exist. Aborting.") unless File.directory?(d[:directory])
+    
+        # actually sort the images
+        puts "Working directory is: #{simplify_path d[:directory]}"
+        files = Dir.glob(File.join(d[:directory], '*.tiff'))
+        p files
+        sort_path = SCfp[:sorted_pages_dir]
+    
+        curr = 0
+        errs = []
+    
+        puts "Reading course information"
+        # Unfortunately ActiveRecord is not always threadsafe, which leads
+        # to some threads failing. For this reason and to prevent the n+1
+        # queries problem, select all required data in one go.
+        data = {}
+        # Rails magic tries too hard and loads much more information than
+        # required, making the auto-generated query very slow. This one is
+        # fast enough.
+        Course.includes(:form,:course_profs).map do |c|
+          c.course_profs.each do |cp|
+            p cp.id
+            data[cp.id.to_i]={:lang=>c.language,:form_id=>c.form.id}
+          end
+        end
+        p files
+        files.each do |f|
+          barcode= File.basename(f).split("-")[0]
+          basename= "scanned_"+File.basename(f).split("-")[1].split(".")[0].rjust(6, '0')
+          form = "#{data[barcode.to_i][:form_id]}_#{data[barcode.to_i][:lang]}"
+          FileUtils.makedirs(File.join(sort_path, form))
+          FileUtils.move(f, File.join(sort_path, form, "#{barcode}_#{basename}.tif"))
+        end
+  end
   desc "(4) Sort scanned images by barcode (#{simplify_path(SCfp[:scanned_pages_dir])} → #{simplify_path(SCfp[:sorted_pages_dir])})"
   task :sortandalign, :directory do |t, d|
     # use default directory if none given
@@ -106,7 +149,7 @@ namespace :images do
       next unless Dir.exist?(f[0..-6])
       puts "\n\n\nNow processing #{f}"
       bn = File.basename(f, ".yaml")
-      system(%(./pest/omr2.rb -s "#{f}" -p "#{p}/#{bn}" -c #{number_of_processors}))
+      system(%(./pest/omr2.rb -d -s "#{f}" -p "#{p}/#{bn}" -c #{number_of_processors}))
     end
 
     puts
@@ -187,14 +230,14 @@ namespace :images do
 
       # find all existing images for courses/profs and tutors
       bcs = sem.barcodes
-      cpics = CPic.where(:course_prof_id => bcs).map { |t| t.basename }
-      tids = sem.courses.map { |c| c.tutors.map { |t| t.id } }
-      tpics = Pic.where(:tutor_id => tids).map { |t| t.basename }
+      cpics = bcs.map{|bc| CourseProf.find(bc).first.c_pics.map{|cp| cp.basename}}.flatten
+      tpics =  sem.courses.map { |c| c.tutors.map { |t| t.pics.map{|p| p.basename} } }.flatten
 
       # find all tables that include a tutor chooser
       forms = sem.forms.find_all { |form| form.abstract_form.include_question_type?("tutor_table") }
       tables = {}
       forms.each { |form| tables[form.db_table] = form.abstract_form.get_tutor_question.db_column }
+      
       allfiles = Dir.glob(File.join(SCfp[:sorted_pages_dir], '**/*.jpg'))
       allfiles.each_with_index do |f, curr|
         bname = File.basename(f)
@@ -224,6 +267,7 @@ namespace :images do
           # find tutor id
           tut_num = nil
           tables.each do |table, column|
+            next unless CourseProf.find(bname.split("_")[0]).first.course.form.db_table ==table
             data = Result.find(table).first.find_tutor(column:column, path:source).first.res
             tut_num = data[column].to_i if data
             break if tut_num
@@ -292,11 +336,19 @@ namespace :images do
     `mkdir -p ./tmp/images`
     forms = Term.where(is_active:true).map { |s| s.forms }.flatten
     forms.each do |form|
-      form.abstract_form.lecturer_header.keys.collect do |lang|
+      if form.abstract_form.lecturer_header.is_a? String then
+        lang ="de"
         target = File.join(SCfp[:sorted_pages_dir], "#{form.id}_#{lang}.yaml")
         next if File.exists?(target)
         file = make_sample_sheet(form, lang)
         FileUtils.move("#{file}.yaml", target)
+      else
+        form.abstract_form.lecturer_header.keys.collect do |lang|
+          target = File.join(SCfp[:sorted_pages_dir], "#{form.id}_#{lang}.yaml")
+          next if File.exists?(target)
+          file = make_sample_sheet(form, lang)
+          FileUtils.move("#{file}.yaml", target)
+        end
       end
     end
   end

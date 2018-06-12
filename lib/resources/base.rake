@@ -5,10 +5,12 @@ class Base < JsonApiClient::Resource
   self.site = ENV["PEST_SERVER"]
   property :id,          type: :int
 end
+
 Base.connection do |connection|
   # set OAuth2 headers
 
   # log responses
+  connection.use Faraday::Request::BasicAuthentication, 'henrik', 'somepassword'
   connection.use Faraday::Response::Logger
-
+  
 end

@@ -192,7 +192,7 @@ forms_sorted.each do |file, data|
     puts(print)
     puts(banner)
   end
-  puts "The sheets will be put in the #{BIN_DESC[bin].bold}"
+  puts "The sheets will be put in the #{BIN_DESC[bin]}"
   puts
 
   # give time estimate if we can assume we waited for the printer. Also
@@ -209,7 +209,7 @@ forms_sorted.each do |file, data|
       puts "this means you waited for the printer. Here’s an estimate:"
       puts "#{totalcounter} sheets took #{time_taken}s to print."
       puts "That’s #{time_per_sheet} per sheet."
-      puts "#{left} to go, so about #{ttg.bold} to go."
+      puts "#{left} to go, so about #{ttg} to go."
       puts
       puts
     end

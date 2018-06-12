@@ -1,9 +1,18 @@
 require 'thread/pool'
 namespace :forms do
   desc "Generate forms"
-  task :generate, :term_id do |a,t|
+  task :generate_single,[:barcode] do |t,a|
+    dirname = './tmp/forms/'
+    FileUtils.mkdir_p(dirname)
     puts "moin"
-    puts t
+    puts "Suche nach Barcode:#{a.barcode}"
+    cp = CourseProf.find(a.barcode).first
+    if cp.course.students.blank?
+      puts "No students given, aborting"
+    else
+      make_pdf_for(cp, dirname)
+      puts "DOOONE. get yourself a coke."
+    end
   end
   desc "Create form samples for all available forms. Leave empty for current terms."
   task :samples, :term_id do |t,a|
