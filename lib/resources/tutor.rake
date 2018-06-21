@@ -24,9 +24,9 @@ class Tutor < Base
       b << form.too_few_sheets(returned_sheets)
       return b
     end
-
+    
     tut_db_col = form.get_tutor_question.db_column.to_sym
-
+    
     questions.each do |q|
       b << RT.eval_question(form.db_table, q,
             # this tutor only
@@ -38,6 +38,6 @@ class Tutor < Base
     b
   end
   def tutnum
-    course.tutors.find_index{|i| self.id=i.id} + 1
+    course.tutors.find_index{|i| self.id==i.id} + 1
   end
 end

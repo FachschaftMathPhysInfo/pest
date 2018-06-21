@@ -37,4 +37,24 @@ class Form < Base
       else        I18n.t(:too_few_questionnaires)[:plural].gsub(/#1/, count.to_s)
     end
   end
+  def abstract_form_valid?
+    true# hot fix
+  end
+    # catches all methods that are not implemented and sees if
+  # AbstractForm has them. If it doesn’t either, a more detailed error
+  # message is thrown.
+  def method_missing(name, *args, &block)
+    begin; super; rescue Exception => e
+      # Can’t use responds_to? because we need to know about instance
+      # methods and not class ones.
+      unless AbstractForm.instance_methods.include?(name.to_sym)
+        raise "undefined method #{name} for both web/app/models/form.rb and lib/AbstractForm.rb"
+      end
+      return abstract_form.method(name).call(*args) if abstract_form_valid?
+      logger.warn "AbstractForm invalid, therefore can’t call «#{name}»"
+      # return nil when AbstractForm has the method, but it cannot be
+      # used because the form is invalid
+      return nil
+    end
+  end
 end

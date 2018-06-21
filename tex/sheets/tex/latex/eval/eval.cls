@@ -5,7 +5,7 @@
 \LoadClass[twoside,7pt]{scrartcl}
 \RequirePackage{fixltx2e}
 
-\RequirePackage[T1]{fontenc}
+\RequirePackage{fontspec}
 \RequirePackage{amssymb}
 \RequirePackage{array}
 \RequirePackage{babel}

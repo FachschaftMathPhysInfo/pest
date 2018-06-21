@@ -1,0 +1,56 @@
+\pagestyle{empty}
+\rowcolors{1}{gray!20}{white}
+\marginsize{0.5cm}{0.5cm}{1cm}{-1cm}
+
+\begin{landscape}
+
+\begin{minipage}[b]{0.5\linewidth}
+  \textbf{How To:}
+  \begin{enumerate}
+    \item ankreuzen WANN Du evalst
+    \item Deinen MathPhys-Account \emph{oder} Deine E-Mail, falls Du keinen Acc hast
+    \item Die Hörer schätzen (z.B. in die Veranstaltung gehen und zählen)
+  \end{enumerate}
+\end{minipage}
+\hspace{0.5cm}
+\begin{minipage}[b]{0.5\linewidth}
+  \textbf{Deine Verantwortung:}
+  \begin{compactitem}
+    \item der Bogen im Seee stimmt (Dt/En, VL/Seminar)
+    \item Hörerzahl im Seee stimmt
+    \item Du sorgst in der Evalwoche ggf. für Ersatz, falls Du nicht kannst
+    \item Du klüngelst mit den Profs bei Sonderwünschen
+    \item Du weißt wo die Veranstaltung stattfindet
+  \end{compactitem}
+\end{minipage}
+
+
+
+
+
+\renewcommand{\arraystretch}{1.5}
+\renewcommand{\time}[2]{#1\textsuperscript{#2}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}p}
+\newcolumntype{Z}{>{\raggedleft\arraybackslash}p}
+
+\begin{longtable}[l]{Y{8cm}Y{5cm}Y{4cm}Y{4cm}Y{3.8cm}Z{1cm}}
+\hline
+Name             & DozentIn      & Raum    & Zeit                               & AccountName? & Hörer? \\
+Beispiel-Seminar & Rebecca Schön & FS-Raum & $\Box$ \time{18}{15}-\time{18}{45} & sischoen@    & 37     \\
+\hline
+\endhead
+
+<% data.courses.reject{|c| c.form.id =="124"}.each do |d| %>
+  <%= d.title.escape_for_tex %> &
+  <%= d.course_profs.map{|cp| cp.prof.surname}.join(",") %> &
+  <%= d.description.escape_for_tex %> &
+   &
+  <%= d.fs_contact_addresses_short %> &
+  <%= n=d.students; n ? n : "" %>
+  \\
+<% end %>
+\end{longtable}
+
+\renewcommand{\arraystretch}{1}
+
+\end{landscape}

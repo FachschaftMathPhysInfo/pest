@@ -16,7 +16,7 @@
 <%
 preface = File.join(RAILS_ROOT, "tex/preface_#{I18n.locale}.tex")
 unless File.exists?(preface)
-  preface = File.join(RAILS_ROOT, "/preface.tex")
+  preface = File.join(RAILS_ROOT, "tex/preface.tex")
   puts "WARNING: Missing preface_#{I18n.locale}.tex"
 end
 %>
