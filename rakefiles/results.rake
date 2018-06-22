@@ -95,6 +95,13 @@ namespace :results do
     filename = c.dir_friendly_title << '_' << c.term.dir_friendly_title << '.pdf'
     render_tex(c.evaluate(true), dirname + filename, false, false, true)
   end
+  def pdf_single_tutor(tutor)
+    dirname = 'tmp/results/singles/'
+    FileUtils.mkdir_p(dirname)
+    c = tutor.course
+    filename = tutor.abbr_name + '_'+ c.dir_friendly_title << '_' << c.term.dir_friendly_title << '.pdf'
+    render_tex(tutor.evaluate(true), dirname + filename, false, false, true)
+  end
 
   desc "create pdf report for a single course"
   task :pdf_single, [:course_id] => "forms:samples" do |t,a|
@@ -114,7 +121,7 @@ namespace :results do
     faculty_ids = a.faculty_id ? [a.faculty_id.to_i] : Faculty.all.map{|t| t.id.to_i}
 
     courses = Course.where(:term_id => term_ids, :faculty_id => faculty_ids)
-    byebug
+    
     max = courses.map { |c| c.course_profs.size + c.tutors.size }.sum
     cur = 0
     print_progress(cur, max)
@@ -171,5 +178,24 @@ namespace :results do
         `pdftk #{p}/#{d} background ./tools/wasserzeichen.pdf output #{p}/preliminary_#{d}`
     end
     Rake::Task["clean".to_sym].invoke
+  end
+  desc "Creates reports for all tutors of a semester and faculty"
+  task :pdf_tutor_singles, [:term_id, :faculty_id] => "forms:samples" do |t,a|
+    term_ids = a.term_id ? [a.term_id.to_i] : Term.where(is_active:true).map{|t| t.id.to_i}
+
+    faculty_ids = a.faculty_id ? [a.faculty_id.to_i] : Faculty.all.map{|t| t.id.to_i}
+
+    courses = Course.where(:term_id => term_ids, :faculty_id => faculty_ids)
+    
+    max = courses.map { |c| c.course_profs.size + c.tutors.size }.sum
+    cur = 0
+    print_progress(cur, max)
+    courses.each do |course|
+        course.tutors.each do |tutor|
+          pdf_single_tutor(tutor)
+        end
+        cur += course.course_profs.size + course.tutors.size
+        print_progress(cur, max, course.title)
+    end
   end
 end
