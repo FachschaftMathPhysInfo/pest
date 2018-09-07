@@ -1,5 +1,5 @@
 # encoding: utf-8
-
+require 'thread/pool'
 namespace :results do
   # This is a helper function that will create the result PDF file for a
   # given term and faculty_id in the specified directory.
@@ -121,15 +121,19 @@ namespace :results do
     faculty_ids = a.faculty_id ? [a.faculty_id.to_i] : Faculty.all.map{|t| t.id.to_i}
 
     courses = Course.where(:term_id => term_ids, :faculty_id => faculty_ids)
-    
+
     max = courses.map { |c| c.course_profs.size + c.tutors.size }.sum
     cur = 0
     print_progress(cur, max)
+    pool = Thread.pool(12)
     courses.each do |course|
+        #pool.process{
         pdf_single(course)
         cur += course.course_profs.size + course.tutors.size
         print_progress(cur, max, course.title)
+    #  }
     end
+    #pool.shutdown
   end
 
   desc "create report pdf file for a given term and faculty (leave empty for: lang = mixed, sem = current, fac = all)"
@@ -186,7 +190,7 @@ namespace :results do
     faculty_ids = a.faculty_id ? [a.faculty_id.to_i] : Faculty.all.map{|t| t.id.to_i}
 
     courses = Course.where(:term_id => term_ids, :faculty_id => faculty_ids)
-    
+
     max = courses.map { |c| c.course_profs.size + c.tutors.size }.sum
     cur = 0
     print_progress(cur, max)

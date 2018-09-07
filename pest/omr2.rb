@@ -651,6 +651,8 @@ class PESTOmr < PESTDatabaseTools
 
     files.each_with_index do |file, i|
       # Processes the file and prints processing time
+      datei = File.basename(file)
+      next if File.exists?(File.dirname(file)+"/"+datei.split('.')[0]+"_DEBUG.jpg")
       file_time = Time.now
 
       percentage = (i.to_f/files.length*100.0).to_i
@@ -917,6 +919,7 @@ class PESTOmr < PESTDatabaseTools
       # Iterates over the given filenames and recognizes them
       begin
         process_file_list(files)
+        p files
       rescue Interrupt, SystemExit => e
         ex = e.status if e && e.is_a?(SystemExit)
         debug

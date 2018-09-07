@@ -19,19 +19,19 @@ namespace :images do
           d[:directory] = SCfp[:scanned_pages_dir]
           FileUtils.makedirs(d[:directory])
         end
-    
+
         # abort if the directory of choice does not exist for some reason
         abort("Given directory does not exist. Aborting.") unless File.directory?(d[:directory])
-    
+
         # actually sort the images
         puts "Working directory is: #{simplify_path d[:directory]}"
         files = Dir.glob(File.join(d[:directory], '*.tiff'))
         p files
         sort_path = SCfp[:sorted_pages_dir]
-    
+
         curr = 0
         errs = []
-    
+
         puts "Reading course information"
         # Unfortunately ActiveRecord is not always threadsafe, which leads
         # to some threads failing. For this reason and to prevent the n+1
@@ -145,13 +145,18 @@ namespace :images do
   task :omr => 'images:getyamls' do
     # OMR needs the YAML files as TeX also outputs position information
     p = SCfp[:sorted_pages_dir]
+    byebug
+    skipped = []
     Dir.glob(File.join(p, "[0-9]*.yaml")).each do |f|
-      next unless Dir.exist?(f[0..-6])
+      unless Dir.exist?(f[0..-6])
+        skipped.push f
+        next
+      end
       puts "\n\n\nNow processing #{f}"
       bn = File.basename(f, ".yaml")
       system(%(./pest/omr2.rb -d -s "#{f}" -p "#{p}/#{bn}" -c #{number_of_processors}))
     end
-
+    p skipped
     puts
     puts "Next recommended step: rake images:correct"
   end
@@ -225,6 +230,10 @@ namespace :images do
   task :insertcomments do |t, d|
     cp = SCc[:cp_comment_image_directory]
     mkdir = SCc[:mkdir_comment_image_directory]
+    tut_num_nil = 0
+    tut_num_l0 = 0
+    tut_num_null = 0
+    tut_num_count_greater = 0
     Term.where(is_active:true).each do |sem|
       path=File.join(File.dirname(__FILE__), "tmp/images")
 
@@ -237,14 +246,17 @@ namespace :images do
       forms = sem.forms.find_all { |form| form.abstract_form.include_question_type?("tutor_table") }
       tables = {}
       forms.each { |form| tables[form.db_table] = form.abstract_form.get_tutor_question.db_column }
-      
+
       allfiles = Dir.glob(File.join(SCfp[:sorted_pages_dir], '**/*.jpg'))
       allfiles.each_with_index do |f, curr|
         bname = File.basename(f)
         next if bname =~ /_DEBUG/
         source = f.sub(/_[^_]+$/, "") + ".tif"
+        p curr/allfiles.count
+        p source
         # upload sheet
         sheet= Sheet.find(uid:source).first
+        p sheet
         sheet= Sheet.create(uid:source, picture:File.read(source)) if sheet.nil?
         barcode = find_barcode_from_path(f)
 
@@ -272,32 +284,65 @@ namespace :images do
             tut_num = data[column].to_i if data
             break if tut_num
           end
+          # load tutors
+          tutors = course_prof.first.course.tutors.sort { |a,b| a.id <=> b.id }
           if tut_num.nil?
+            tut_num_nil = tut_num_nil+1
+            def_tut = tutors.find{|t| t.abbr_name == "Unassigned"}
+            if def_tut.nil?
+              def_tut = Tutor.new(abbr_name:"Unassigned")
+              def_tut.relationships.course = course_prof.first.course
+              def_tut.save
+              tutors.push(def_tut)
+            end
+            tut_num = tutors.find_index(def_tut) +1
             warn "\n\nCouldn’t find any record in the results database for #{bname}. Cannot match tutor image. Skipping.\n"
-            next
+            #next
           end
 
           if tut_num == 0
+            tut_num_null = tut_num_null+1
+            def_tut = tutors.find{|t| t.abbr_name == "Unassigned"}
+            if def_tut.nil?
+              def_tut = Tutor.new(abbr_name:"Unassigned")
+              def_tut.relationships.course = course_prof.first.course
+              def_tut.save
+              tutors.push(def_tut)
+            end
+            tut_num = tutors.find_index(def_tut) +1
             warn "\n\nCouldn’t add tutor image #{bname}, because no tutor was chosen (or marked invalid). Skipping.\n"
-            next
+            #next
           end
 
-          # load tutors
-          tutors = course_prof.first.course.tutors.sort { |a,b| a.id <=> b.id }
 
-          if tut_num < 0
-            warn "\n\nCouldn’t add tutor image #{bname}, because OMR result is ambigious. Have you run `rake images:correct`?"
-            next
-          end
 
           if tut_num < 0
+            tut_num_l0 = tut_num_l0+1
+            def_tut = tutors.find{|t| t.abbr_name == "Unassigned"}
+            if def_tut.nil?
+              def_tut = Tutor.new(abbr_name:"Unassigned")
+              def_tut.relationships.course = course_prof.first.course
+              def_tut.save
+              tutors.push(def_tut)
+            end
+            tut_num = tutors.find_index(def_tut) +1
             warn "\n\nCouldn’t add tutor image #{bname}, because OMR result is ambigious. Have you run `rake images:correct`?"
-            next
+            #next
           end
+
 
           if tut_num > tutors.count
+            tut_num_count_greater = tut_num_count_greater+1
+            def_tut = tutors.find{|t| t.abbr_name == "Unassigned"}
+            if def_tut.nil?
+              def_tut = Tutor.new(abbr_name:"Unassigned")
+              def_tut.relationships.course = course_prof.first.course
+              def_tut.save
+              tutors.push(def_tut)
+            end
+            tut_num = tutors.find_index(def_tut) +1
             warn "\n\nCouldn’t add tutor image #{bname}, because chosen tutor does not exist (checked field num > tutors.count). Skipping.\n"
-            next
+            #next
           end
 
           p = Pic.new
@@ -317,7 +362,10 @@ namespace :images do
         print_progress(curr+1, allfiles.size)
       end # Dir glob
     end # Term.each
-
+    puts tut_num_nil
+    puts tut_num_l0
+    puts tut_num_null
+    puts tut_num_count_greater
     puts
     puts "Done."
     puts

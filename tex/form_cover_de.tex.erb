@@ -5,6 +5,7 @@
 \usepackage{wrapfig}
 \geometry{a4paper,left=2cm, right=2cm, top=2cm, bottom=2cm}
 \usepackage{fontspec}
+\usepackage{graphicx}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{5pt}
 \renewcommand{\time}[2]{#1\textsuperscript{#2}}
@@ -81,6 +82,6 @@ Profs & Raum & Zeit \\
   \vspace{-30pt}
     \hfill\includegraphics[width=30mm]{qrcode_<%=c.id%>.png}
 \end{wrapfigure}
-GAU! Rufe im FS-Raum an und oder drucke über folgende URL in <%=Config.settings[:emergency_printing_amount]%>er Schritten Bögen aus:\\
+GAU! Rufe im FS-Raum an und oder drucke über folgende URL in <%=Seee::Config.settings[:emergency_printing_amount]%>er Schritten Bögen aus:\\
 \url{<%=em_url%>}
 \end{document}

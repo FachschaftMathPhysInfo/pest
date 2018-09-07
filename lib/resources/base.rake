@@ -10,7 +10,7 @@ Base.connection do |connection|
   # set OAuth2 headers
 
   # log responses
-  connection.use Faraday::Request::BasicAuthentication, 'henrik', 'somepassword'
-  connection.use Faraday::Response::Logger
+  connection.use Faraday::Request::BasicAuthentication, 'henrik', 'Toynyir3'
+ # connection.use Faraday::Response::Logger
   
 end

@@ -124,7 +124,7 @@ module Config
 
     @@file_paths = {
       # Specify a directory where to cache things
-      :cache_tmp_dir => '/tmp/seee/',
+      :cache_tmp_dir => './tmp/results/',
 
       # directory to store the extracted comment images in. Each term
       # has its own subfolder, which will be created automatically.
