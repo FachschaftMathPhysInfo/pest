@@ -93,13 +93,21 @@ namespace :results do
     FileUtils.mkdir_p(dirname)
     c = course
     filename = c.dir_friendly_title << '_' << c.term.dir_friendly_title << '.pdf'
-    render_tex(c.evaluate(true), dirname + filename, false, false, true)
+    if File.exist?(temp_dir(File.basename(dirname+filename,".pdf"))+"/#{File.basename(filename)}")
+      warn "Skipping #{filename}"
+      return
+    end
+      render_tex(c.evaluate(true), dirname + filename, false, false, true)
   end
   def pdf_single_tutor(tutor)
     dirname = 'tmp/results/singles/'
     FileUtils.mkdir_p(dirname)
     c = tutor.course
     filename = tutor.abbr_name + '_'+ c.dir_friendly_title << '_' << c.term.dir_friendly_title << '.pdf'
+    if File.exist?(temp_dir(File.basename(dirname+filename,".pdf"))+"/#{File.basename(filename)}")
+      warn "Skipping #{filename}"
+      return
+    end
     render_tex(tutor.evaluate(true), dirname + filename, false, false, true)
   end
 
