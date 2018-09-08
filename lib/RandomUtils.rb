@@ -114,7 +114,14 @@ def find_barcode_from_path(path)
   return nil if bc.nil?
   bc[1]
 end
-
+class Fixnum
+  def dot_product(other)
+    return self*other
+  end
+  def eucledian_norm
+    Math::sqrt(self**2)
+  end
+end
 class Array
   def dot_product(other)
     raise "Arrays have different dimensions" if self.size != other.size
@@ -128,7 +135,8 @@ class Array
 
   def vector_diff(other)
     raise "Arrays have different dimensions" if self.size != other.size
-    (0..(self.size-1)).map { |i| self[i]-other[i] }
+    (0..(self.size-1)).map { |i|
+      return self[i]-other[i] }
   end
 
   # Shorthand to see if any of the entries are nil

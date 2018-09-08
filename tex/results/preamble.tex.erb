@@ -8,7 +8,8 @@
 
 % load (bugfixed) LaTeX and set some style options %%%%%%%%%%%%%%%%%%%%%
 \RequirePackage{fix-cm}
-\documentclass[pagesize,parskip=half-,headsepline,cleardoublepage=empty,table]{scrbook}
+\documentclass[pagesize,halfparskip-,headsepline,cleardoubleempty,table]{scrbook}
+\usepackage{fixltx2e}
 \areaset[1cm]{17cm}{26cm}
 
 % load packages %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -27,20 +28,20 @@ end
 \usepackage{color}
 \usepackage{calc}
 \usepackage{dsfont}                   % additional math font
-\usepackage{fontspec}
+\usepackage[T1]{fontenc}
 \usepackage{graphicx}
+\usepackage[utf8]{inputenc}
 \usepackage{lmodern}                  % tug.dk/FontCatalogue/lmodern
 \usepackage{longtable}                % so tutor tables may page break
 \usepackage{pdflscape}                % insert landscape pages
 \usepackage{marvosym}                 % more symbols
 % \usepackage{multicol}               % not in use
-%\usepackage[protrusion,expansion]{microtype} % nicer typesetting
+\usepackage[protrusion,expansion]{microtype} % nicer typesetting
 \usepackage[olditem,oldenum]{paralist}% use less space for lists
 \usepackage{pdfpages}                 % for including the sample sheets
 \usepackage{pgf}                      % answers; drawings with jpgjdraw
 \usepackage{pgffor}                   % for each loops
 \usepackage{pgfplots}                 % histograms, error bars, …
-\pgfplotsset{compat=1.15}
 \usetikzlibrary{patterns,positioning} % some fancy stuff
 \usepackage{textcomp}                 % symbols, e.g. \textrightarrow
 \usepackage[breakall]{truncate}       % trim overlong strings
@@ -56,6 +57,12 @@ end
 
 <% additional_packages ||= "" %>
 <%=additional_packages%>
+
+% these will be used when previewing the comments online. Depending on
+% the type of the document either censor.def.tex or no_censor.def.tex
+% will be included later, overwriting these commands.
+\newcommand{\CENSORED}{\begin{center}\line(1,0){150}  CENSORED PART STARTS \line(1,0){150}\end{center}}
+\newcommand{\UNCENSORED}{\begin{center}\line(1,0){180}  CENSOR END \line(1,0){180}\end{center}}
 
 % style settings %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \renewcommand{\TruncateMarker}{\textasciitilde}
@@ -100,7 +107,7 @@ end
 
 
 % FIXME: these should be in a separate tex.erb
-\newcommand{\kurskopf}[5]{\clearpage\pdfdest %name{#4} xyz%
+\newcommand{\kurskopf}[5]{\clearpage\pdfdest name{#4} xyz%
   \chapter{#1 #5 #2}}
 
 

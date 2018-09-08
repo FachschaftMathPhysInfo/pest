@@ -82,8 +82,15 @@ class ResultTools
   # Counts the amount of rows for the given hash as well as the average
   # and standard deviation for the given values. Rows with invalid
   # values (i.e. only 0 < values < 99) are ignored.
+  @@cache_http = {}
   def count_avg_stddev(table, column, where_hash = {})
-    Result.find(table).first.count_avg_stddev(where_hash:where_hash,column:column).first.res
+    p "Before"
+    return @@cache_http[table][column][where_hash.to_s] unless @@cache_http[table].nil? || @@cache_http[table][column].nil? || where_hash.nil?
+    @@cache_http[table] ||={}
+    @@cache_http[table][column] ||={}
+    @@cache_http[table][column][where_hash.to_s] = Result.find(table).first.count_avg_stddev(where_hash:where_hash,column:column).first.res
+    p "CACHING"
+    return @@cache_http[table][column][where_hash.to_s]
   end
 
   # Counts the amount of rows for the given hash. It is processed in the
@@ -94,7 +101,9 @@ class ResultTools
   # If a db column is given as 3rd argument, will group by that db
   # column and return multiple results. The format is a hash of
   # { value => count }
+  @@cache_count = {}
   def count(table, where_hash = {}, group = nil, skip_null = true)
+    #return @@cache_http[table][column][where_hash.to_s+group.to_s] unless @@cache_http[table].nil? || @@cache_http[table][column].nil? || where_hash.nil?
     r ={}
     table = table.first if table.is_a?(Array)
     answ = Result.find(table).first.count(where_hash:where_hash,group:group,skip_null:skip_null).first.res

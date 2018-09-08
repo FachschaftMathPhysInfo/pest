@@ -12,5 +12,5 @@ Base.connection do |connection|
   # log responses
   connection.use Faraday::Request::BasicAuthentication, ENV["PEST_USERNAME"], ENV["PEST_PASSWORD"]
   #connection.use Faraday::Response::Logger
-  
+ 
 end
