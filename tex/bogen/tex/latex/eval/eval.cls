@@ -2,15 +2,15 @@
 \ProvidesClass{eval}[2012/02/09 evalsheets]
 
 \RequirePackage{fix-cm}
-\LoadClass[twoside,8pt]{scrartcl}
+\LoadClass[twoside,7pt]{scrartcl}
 \RequirePackage{fixltx2e}
 
-\RequirePackage[utf8]{inputenc}
-\RequirePackage[T1]{fontenc}
+\RequirePackage{fontspec}
 \RequirePackage{amssymb}
 \RequirePackage{array}
 \RequirePackage{babel}
 \RequirePackage{bophook}
+\RequirePackage{forloop}
 \RequirePackage{calc}
 \RequirePackage{color}
 \RequirePackage{colortbl}
@@ -18,7 +18,6 @@
 \RequirePackage{graphicx}
 \RequirePackage{ifthen}
 \RequirePackage{multirow}
-\RequirePackage{microtype}
 \let\amssymbBox\Box
 \RequirePackage{MnSymbol}
 \let\Box\amssymbBox
@@ -27,6 +26,9 @@
 \RequirePackage[breakall]{truncate}
 \RequirePackage{xparse}
 \RequirePackage{xstring}
+\RequirePackage[pdf]{pstricks}
+
+\RequirePackage{pst-barcode}
 \renewcommand{\rmdefault}{\sfdefault}
 
 % centered, fixed width table column
@@ -83,18 +85,21 @@
 % for-each-page stuff (e.g. headers, edges)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\geometry{left=9mm,right=9mm, top=0.6cm, bottom=0.7cm}
+\geometry{left=9mm,right=9mm, top=0.5cm, bottom=1.1cm}
 
 % print edges and repeated header (if available) for each page
 \AtBeginPage{
   \put(15, -15){\rule{1cm}{1pt}}
   \put(15, -43){\rule{1pt}{1cm}}
-  \put(15, -830){\rule{1cm}{1pt}}
-  \put(15, -830){\rule{1pt}{1cm}}
+  %\put(15, -830){\rule{1cm}{1pt}}
+  %\put(15, -830){\rule{1pt}{1cm}}
   \put(554, -15){\rule{1cm}{1pt}}
   \put(581.5, -43){\rule{1pt}{1cm}}
   \put(554, -830){\rule{1cm}{1pt}}
-  \put(581.5, -830){\rule{1pt}{1cm}}
+  \put(581.5, -830){\rule{1pt}{1cm}}%put datamatrix in left lower corner
+  \put(15,-830){\begin{pspicture}(0,0)(1cm,1cm)
+  	\psbarcode{\storedLectureID-\storedSheetID-\thepage}{format=rectangle version=12x36 height=0.24}{datamatrix}
+  	\end{pspicture}}
   \wPosout{- !ruby/object:Page}
   \wPosout{u questions:}
 }
@@ -120,7 +125,7 @@
 \definecolor{gray}{rgb}{.88,.88,.88}
 \definecolor{darkgray}{rgb}{.6,.6,.6}
 
-% overwrite color of the horizontal lines. Needs also to be set in the \separator command
+% overwrite color of the horizontal lines
 \arrayrulecolor{darkgray}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -135,8 +140,13 @@
 
 % let the user store data using these commands
 \newcommand{\lecture}[1]{\def\storedLecture{#1}}
+\newcommand{\lectureID}[1]{\def\storedLectureID{#1}}
+\newcommand{\sheetID}[1]{\def\storedSheetID{#1}}
+\newcommand{\vorlesung}[1]{\message{DEPRECATION: The command "vorlesung" is deprecated. Please use "lecture" instead. Arguments are exactly the same.}\def\storedLecture{#1}}
 \newcommand{\term}[1]{\def\storedTerm{#1}}
+\newcommand{\semester}[1]{\message{DEPRECATION: The command "semester" is deprecated. Please use "term" instead. Arguments are exactly the same.}\def\storedTerm{#1}}
 \newcommand{\dbtable}[1]{\def\dbt{#1}}
+\newcommand{\tutoren}[1]{\message{DEPRECATION: The command "tutoren" is deprecated. Please use "tutors" instead. Arguments are exactly the same.}\def\tut{#1}}
 \newcommand{\tutors}[1]{\def\tut{#1}}
 \newcommand{\noAnswerText}[1]{\def\noAnswTxt{#1}}
 \newcommand{\lecturerLast}[1]{\def\lectLast{#1}}
@@ -154,7 +164,8 @@
 % set output file
 \newwrite\posout
 \openout\posout\jobname.posout
-
+\newwrite\postwo
+\openout\postwo\jobname.two.posout
 \def\Source{}
 
 % saves the current coordinates into the YAML file as x and y variables
@@ -272,7 +283,8 @@
 }
 
 % places everything into a box as wide as the page, thus preventing its contents
-% from being interrupted by a page break. Usage:
+% from being interrupted by a page break. Moves its content slightly to the left
+% to combat the hardcoded padding inside the box. Usage:
 % \preventBreak{%
 %    some content
 % }
@@ -280,7 +292,7 @@
   \begin{tabular}[t]{p{192mm}}
     #1
   \end{tabular}
-  \vspace{-1.78mm}
+  \vspace*{-1.8mm}
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -294,9 +306,12 @@
   \wPosout{pages: }
   \wPosout{- !ruby/object:Page }
   \wPosout{u questions: }
+  \def\storedLectureID{#2}
   \vspace*{-1.85mm}
   \Huge{#1}\normalsize
-  \hfill\raisebox{-4.1mm}{\includegraphics[width=3cm,height=1cm]{barcode#2.pdf}}\\
+  \hfill\raisebox{-2.1mm}{\begin{pspicture}(3cm,1cm)
+  	\psbarcode{#2}{ height=0.30 width=1.1811}{ean8}
+  	\end{pspicture}}\\
   \vspace*{-2mm}
 }
 
@@ -312,7 +327,6 @@
 
 % helper function that prints the main text in a header
 \newcommand{\sectText}[1]{\ \ \textbf{#1} \phantom{\"Ay}}
-
 % helper function prints the gray box around any content given in the style of a headline
 \newcommand{\sectBox}[1]{\colorbox{gray}{%
   \hspace*{-1.05mm}%
@@ -322,7 +336,6 @@
   }%
   \hspace*{-1.8mm}
 }}
-
 % helper function that sets the given options in a tabular environment so everything aligns. See
 % \sect for a better explanation.
 \NewDocumentCommand\sectFullBox{m o o o o o o o}{%
@@ -354,8 +367,7 @@
   \setlength{\sectionHeight}{\the\sectionHeight/2}
   \setlength{\sectionHeight}{\maxof{\the\sectionHeight}{0mm}}
 
-  \stepcounter{section}%
-  \vspace*{-2.6mm}%
+  \stepcounter{section}
   \sectFullBox{\arabic{section}. #1}[#2][#3][#4][#5][#6][#7][#8]
 
   \vspace*{-2.4mm}
@@ -369,7 +381,7 @@
 
 % used at the end of the page to mark the end of a comment field
 \newcommand{\separator}[1]{
-  \vspace{-1.15em}\color{darkgray}\rule{19.2cm}{#1}\\
+  \vspace{-1.15em}\rule{19.2cm}{#1}\\
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
