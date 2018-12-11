@@ -5,7 +5,10 @@
 \LoadClass[twoside,7pt]{scrartcl}
 \RequirePackage{fixltx2e}
 
+
 \RequirePackage{fontspec}
+\RequirePackage{lmodern}
+
 \RequirePackage{amssymb}
 \RequirePackage{array}
 \RequirePackage{babel}
