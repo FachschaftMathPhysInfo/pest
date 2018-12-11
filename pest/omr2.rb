@@ -507,7 +507,7 @@ class PESTOmr < PESTDatabaseTools
     # if there are many soft errors, like not found text boxes, mark the
     # sheet bizarr. Likely the base sheet with position information does
     # not fit.
-    @cancelProcessing = true if @soft_error >= 10
+    #@cancelProcessing = true if @soft_error >= 10
 
 
     # Draw debugging image with thresholds, selected fields, etc.
