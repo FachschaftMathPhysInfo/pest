@@ -252,12 +252,17 @@ namespace :images do
         bname = File.basename(f)
         next if bname =~ /_DEBUG/
         source = f.sub(/_[^_]+$/, "") + ".tif"
-        p curr/allfiles.count
+        p (curr.to_f/allfiles.count.to_f)*100
         p source
         # upload sheet
         sheet= Sheet.find(uid:source).first
-        p sheet
+        p sheet if sheet.nil?
+        begin
         sheet= Sheet.create(uid:source, picture:File.read(source)) if sheet.nil?
+        rescue => error
+          p error
+          byebug
+        end
         barcode = find_barcode_from_path(f)
 
         if barcode == 0

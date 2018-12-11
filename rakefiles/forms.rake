@@ -39,7 +39,7 @@ namespace :forms do
     cps = if a.term_id.nil?
       Term.where(is_active:true).map { |s| s.course_profs }.flatten
     else
-      Term.find(a.term_id).course_profs
+      Term.find(a.term_id).first.course_profs
     end
     prog = 0
     puts
@@ -94,7 +94,7 @@ namespace :forms do
     courses =  if a.term_id.nil?
       Term.where(is_active:true).map { |s| s.courses }.flatten
     else
-      Term.find(a.term_id).courses
+      Term.find(a.term_id).first.courses
     end
 
     prog = 0
@@ -102,13 +102,15 @@ namespace :forms do
     puts
     puts "Creating cover sheets:"
     courses.each do |c|
-        cp = c.course_profs.sort_by { |cp| cp.get_filename }.last
-        # probably should have language selector…
-        path = "#{dirname}cover #{cp.get_filename}.tex"
-        em_url = "#NEEDSFIXING/courses/#{c.id}/emergency_printing"
-        tex = ERB.new(RT.load_tex("../form_cover")).result(binding)
-        File.open(path, 'w') {|f| f.write(tex) }
-        xetex_to_pdf(path, true, true)
+        puts c.title
+        c.course_profs.sort_by { |cp| cp.get_filename }.each do |cp|
+          # probably should have language selector…
+          path = "#{dirname}cover #{cp.get_filename}.tex"
+          em_url = "#NEEDSFIXING/courses/#{c.id}/emergency_printing"
+          tex = ERB.new(RT.load_tex("../form_cover")).result(binding)
+          File.open(path, 'w') {|f| f.write(tex) }
+          xetex_to_pdf(path, true, true)
+        end
         prog += 1
         print_progress(prog, courses.size, c.title)
     end

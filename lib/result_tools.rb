@@ -84,13 +84,7 @@ class ResultTools
   # values (i.e. only 0 < values < 99) are ignored.
   @@cache_http = {}
   def count_avg_stddev(table, column, where_hash = {})
-    p "Before"
-    return @@cache_http[table][column][where_hash.to_s] unless @@cache_http[table].nil? || @@cache_http[table][column].nil? || where_hash.nil?
-    @@cache_http[table] ||={}
-    @@cache_http[table][column] ||={}
-    @@cache_http[table][column][where_hash.to_s] = Result.find(table).first.count_avg_stddev(where_hash:where_hash,column:column).first.res
-    p "CACHING"
-    return @@cache_http[table][column][where_hash.to_s]
+    Result.find(table).first.count_avg_stddev(where_hash:where_hash,column:column).first.res
   end
 
   # Counts the amount of rows for the given hash. It is processed in the
@@ -362,12 +356,15 @@ class ResultTools
 
     # collect data for this question
     answ = get_answer_counts(table, q, special_where)
+    p answ
     sc, sa, ss = count_avg_stddev(table, q.db_column, special_where)
     # exit early if there is not enough data. Note that this is
     # different from the minimum required sheets: If enough sheets have
     # been handed in, but everyone checked “not specified” you still
     # would want to include that question. Privacy protection is handled
     # in each model’s eval_block.
+    p "sc"
+    p sc
     if sc.nil? || sc <= 0
       return ERB.new(load_tex("both_too_few_answers")).result(binding)
     end

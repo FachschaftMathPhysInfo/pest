@@ -1,7 +1,7 @@
 source "http://rubygems.org"
 
 gem 'rake'
-gem "json_api_client"
+gem "json_api_client", ">=1.6"
 gem "activesupport"
 gem "activemodel"
 gem "work_queue",      ">=2.0"
@@ -16,5 +16,4 @@ group :pest do
   gem "glib2", "~> 3.2.1"
   gem 'gtk2'
   gem "rmagick"
-  gem "json_api_client"
 end

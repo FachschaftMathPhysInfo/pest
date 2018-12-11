@@ -20,6 +20,7 @@
 
 
 require 'prettyprint'
+require 'pp'
 cdir = File.dirname(__FILE__)
 require cdir + '/RandomUtils.rb'
 
@@ -533,6 +534,7 @@ class AbstractForm
     # instead.
     tex << "\\setTutor{#{I18n.t(:tutor)}}\n"
     tex << "\\setMyTutor{#{I18n.t(:my_tutor)}}\n"
+    tex << "\\newboolean{writePosOut}\n"
     tex << "\\setboolean{writePosOut}{true}\n"
     # tutors
     tutors.collect! { |t| t.escape_for_tex }
@@ -546,6 +548,7 @@ class AbstractForm
 
     tex << get_texhead(lang) + "\n"
     tex << "\\begin{document}\n"
+    tex << "\\setmainfont{LinBiolinumO}\n"
     tex << "\\newcommand{\\questionaire}[2]{"
     tex << "\\sheetID{#2}"
     tex << tex_header(lang, gender) + "\n\n\n"

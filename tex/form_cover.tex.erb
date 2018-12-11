@@ -43,6 +43,7 @@ Profs:    & <%= c.profs.collect { |p| p.fullname }.join(", ").escape_for_tex %> 
 Bogen:    & <%= c.form.name.escape_for_tex %> \\
 Sprache:  & <%= c.language %> \\
 Evaluist: & <%= c.fs_contact_addresses_short.escape_for_tex %> \\
+Kommentar: & <%= c.description %> \\
 Fakultät: & <%= c.faculty.longname.escape_for_tex %>
 \end{tabular}
 
@@ -78,10 +79,9 @@ Profs & Raum & Zeit \\
 \vfill
 \fontfamily{lmr}\selectfont
 \section*{\fontfamily{lmr}\selectfont zu wenig Bögen?}
-\begin{wrapfigure}{r}{0.5\textwidth}
-  \vspace{-30pt}
-    \hfill\includegraphics[width=30mm]{qrcode_<%=c.id%>.png}
-\end{wrapfigure}
-GAU! Rufe im FS-Raum an und oder drucke über folgende URL in <%=Seee::Config.settings[:emergency_printing_amount]%>er Schritten Bögen aus:\\
-\url{<%=em_url%>}
+%\begin{wrapfigure}{r}{0.5\textwidth}
+%%  \vspace{-30pt}
+%%    \hfill\includegraphics[width=30mm]{qrcode_<%=c.id%>.png}
+%\end{wrapfigure}
+GAU! Rufe im FS-Raum an !\\
 \end{document}

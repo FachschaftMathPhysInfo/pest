@@ -38,7 +38,7 @@ class Tutor < Base
     b
   end
   def tutnum
-    course.tutors.find_index{|i| self.id==i.id} + 1
+    course.tutors.sort {|x,y| x.id <=> y.id }.find_index{|i| self.id==i.id} + 1
   end
     # evaluates this whole course against the associated form. if single
 # is set, include headers etc.
