@@ -36,14 +36,7 @@ require cdir + '/helper.database.rb'
 require cdir + '/helper.drawing.rb'
 require cdir + '/helper.constants.rb'
 require cdir + '/helper.image.rb'
-require "json_api_client"
-load cdir + '/../lib/resources/base.rake'
-load cdir + '/../lib/resources/resultpage.rake'
-load cdir + '/../lib/resources/result.rake'
-load cdir + '/../lib/resources/course_prof.rake'
-load cdir + '/../lib/resources/course.rake'
-load cdir + '/../lib/resources/term.rake'
-load cdir + '/../lib/resources/form.rake'
+
 load cdir + '/../lib/AbstractForm.rake'
 require cdir + '/helper.AbstractFormExtended.rb'
 require cdir + '/../lib/RandomUtils.rb'
@@ -70,11 +63,11 @@ class PESTOmr < PESTDatabaseTools
       # TeX stores the box’s coordinates near its bottom right corner.
       # This translation is static and thus different to the one introduced
       # by imperfect scanning. Positive values move the box left/top.
-      moveleft, movetop = 45, 47
+      moveleft, movetop = 45, 38
     else
       # if the last box is a textbox, adjust some values so the textbox
       # can be checked. For now, only checked/unchecked is supported.
-      moveleft, movetop = -10, 67
+      moveleft, movetop = -10, 60
       box.height = 40
     end
 
@@ -475,10 +468,10 @@ class PESTOmr < PESTDatabaseTools
       return
     end
     bname = File.basename file
-    if Result.find(CourseProf.find(bname.split("_")[0]).first.course.form.db_table).first.count(where_hash:{:path=>file}).first.res>0
-      debug "INFO: File already in system: " + file
-      return
-    end
+    #if Result.find(CourseProf.find(bname.split("_")[0]).first.course.form.db_table).first.count(where_hash:{:path=>file}).first.res>0
+    #  debug "INFO: File already in system: " + file
+    #  return
+    #end
     @currentFile = file
 
     start_time = Time.now
@@ -603,7 +596,8 @@ class PESTOmr < PESTDatabaseTools
       #RT.custom_query_no_result("DELETE FROM #{yaml.db_table} WHERE path = ?", [filename])
       #RT.custom_query_no_result(q, vals)
       p keys
-      Resultpage.create(keys:keys.to_json, vals:vals.to_json, db_table:yaml.db_table)
+      p "Warning not  trying to save to db."
+      #Resultpage.create(keys:keys.to_json, vals:vals.to_json, db_table:yaml.db_table)
       # upload images
     rescue
       # still raise, so its printed into PEST_ERROR_LOG
@@ -703,7 +697,7 @@ class PESTOmr < PESTDatabaseTools
   # Parses the given OMR sheet and extracts globally interesting data
   # and ensures the database table exists.
   def parse_omr_sheet
-    return unless @db_table.nil?
+    #return unless @db_table.nil?
     debug "Parsing OMR sheet…"
 
     if !File.exists?(@omrsheet)
@@ -713,16 +707,16 @@ class PESTOmr < PESTDatabaseTools
     # can’t use load_yaml_sheet here because it needs more dependencies
     # that are not yet available
     doc = YAML::load(File.read(@omrsheet))
-
+    p doc
     @page_count = doc.pages.count
-    @db_table = doc.db_table
+    @db_table = "egal"#doc.db_table
     if @db_table.nil?
       debug "ERROR: OMR Sheet #{@omrsheet} doesn’t define in which table the results should be stored. Add a db_table value to the form in the YAML root."
       debug "Exiting."
       exit 2
     end
-
-    Result.create(abstract_form:doc.to_json)
+    p "Warn not saving by Result.create"
+    #Result.create(abstract_form:doc.to_json)
   end
 
   # returns the db_table that is used for the currently processed form
@@ -823,7 +817,8 @@ class PESTOmr < PESTDatabaseTools
       debug "All files have been processed already. Exiting."
       exit
     end
-
+    
+    p files
     files
   end
 
